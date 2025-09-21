@@ -1,4 +1,5 @@
 import random
+import time
 from typing import Any
 
 import genesis as gs
@@ -67,7 +68,7 @@ class PickCubeEnv(BaseEnv):
         # Interactive cube
         self.entities["cube"] = self.scene.add_entity(
             morph=gs.morphs.Box(
-                pos=(0.5, 0.0, 0.07),
+                pos=(0.5, 0.0, 0.02),
                 size=(0.04, 0.04, 0.04),
             ),
         )
@@ -90,7 +91,7 @@ class PickCubeEnv(BaseEnv):
         self.robot = self.entities["robot"]
 
         # Initialize with randomized cube and target positions
-        self._randomize_cube()
+        # self._randomize_cube()
 
         # Track current target point for visualization
         self.current_target_pos = None
@@ -106,6 +107,7 @@ class PickCubeEnv(BaseEnv):
 
         # Randomize cube position (this will set new target location and draw debug sphere)
         self._randomize_cube()
+        # print("Initialize the environment")
 
     # TODO: should not use Any but KeyboardCommand
     def apply_action(self, action: Any) -> None:
@@ -200,8 +202,10 @@ class PickCubeEnv(BaseEnv):
         # Ensure cube and target are far enough apart to avoid auto-success
         max_attempts = 10
         for _attempt in range(max_attempts):
+
+            random.seed(time.time())
             cube_pos = (random.uniform(0.2, 0.4), random.uniform(-0.2, 0.2), 0.05)
-            cube_quat = R.from_euler("z", random.uniform(0, np.pi * 2)).as_quat()
+            cube_quat = R.from_euler("z", random.uniform(0, np.pi * 2)).as_quat(scalar_first=True)
 
             # Set debug sphere to target location (where cube should be placed)
             target_pos = np.array(

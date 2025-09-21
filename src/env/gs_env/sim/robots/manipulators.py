@@ -219,6 +219,44 @@ class ManipulatorBase(BaseGymRobot):
                 [act.gripper_width, act.gripper_width], device=self._device
             )
             self._robot_entity.control_dofs_position(position=q_pos)
+        
+    def _apply_ee_pose_abs_path_planner(self, act: EEPoseAbsAction) -> None:
+        """
+        Apply end-effector pose control to the robot.
+        """
+        assert act.ee_link_pos.shape == (
+            self._num_envs,
+            3,
+        ), "End-effector position must be a 3D vector."
+        assert act.ee_link_quat.shape == (
+            self._num_envs,
+            4,
+        ), "End-effector quaternion must be a 4D vector."
+
+        target_pos = act.ee_link_pos.to(self._device)
+        target_quat = act.ee_link_quat.to(self._device)
+
+        q_pos = self._robot_entity.inverse_kinematics(
+            link=self._ee_link,
+            pos=target_pos,
+            quat=target_quat,
+            dofs_idx_local=self._arm_dof_idx,
+            max_samples=10,  # number of IK samples
+            max_solver_iters=20,  # maximum solver iterations
+        )
+        if isinstance(q_pos, torch.Tensor):
+            q_pos[:, self._fingers_dof] = torch.tensor(
+                [act.gripper_width, act.gripper_width], device=self._device
+            )
+            # path_planner
+            path_planner = self._robot_entity.plan_path(qpos_goal=q_pos, num_waypoints=200, 
+                                    ignore_collision=False, resolution=0.05, max_retry=5, smooth_path=True)                        
+            for waypoint in path_planner:
+                self._robot_entity.control_dofs_position(waypoint)
+                self._scene.step()
+            
+            for i in range(8000):
+                self._scene.step()
 
     def _apply_ee_pose_rel(self, act: EEPoseRelAction) -> None:
         """

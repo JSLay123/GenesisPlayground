@@ -18,7 +18,7 @@ def main() -> None:
     parser.add_argument(
         "--trajectory-file",
         type=str,
-        help="Specific trajectory file to replay (e.g., franka_pick_place_1757368298.pkl)",
+        help="Specific trajectory file to replay (e.g., franka_pick_place_1758271754.pkl)",
     )
     parser.add_argument(
         "--robot-type",

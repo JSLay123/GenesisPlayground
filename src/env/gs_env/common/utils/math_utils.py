@@ -438,3 +438,11 @@ def compute_pose_error(
         raise ValueError(
             f"Unsupported orientation error type: {rot_error_type}. Valid: 'quat', 'axis_angle'."
         )
+
+def wxyz_to_xyzw(quat: torch.Tensor) -> torch.Tensor:
+    """Convert quaternion from (w, x, y, z) to (x, y, z, w) format."""
+    return quat[..., [1, 2, 3, 0]]
+
+def xyzw_to_wxyz(quat: torch.Tensor) -> torch.Tensor:
+    """Convert quaternion from (x, y, z, w) to (w, x, y, z) format."""
+    return quat[..., [3, 0, 1, 2]]
